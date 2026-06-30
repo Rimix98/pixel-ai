@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -32,7 +31,6 @@ interface ChatMessage {
 }
 
 export default function CodePage() {
-  const router = useRouter();
   const { user } = useAuth();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
@@ -43,14 +41,7 @@ export default function CodePage() {
   const tier = user?.subscription_tier || "free";
   const hasAccess = tier === "pro" || tier === "max";
 
-  const codeModels = [
-    { name: "Logos 2.5", minTier: "free" },
-    { name: "Ethos 4.1", minTier: "pro" },
-    { name: "Aether 1.5", minTier: "max" },
-  ];
-  const TIER_ORDER = ["free", "pro", "max"];
-  const canUseModel = (t: string, min: string) => TIER_ORDER.indexOf(t) >= TIER_ORDER.indexOf(min);
-  const defaultModel = tier === "max" ? "Aether 1.5" : tier === "pro" ? "Ethos 4.1" : "Logos 2.5";
+  const defaultModel = tier === "max" ? "Aether 1.0" : tier === "pro" ? "Ethos 1.0" : "Logos 1.0";
   const [modelName, setModelName] = useState(defaultModel);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
 

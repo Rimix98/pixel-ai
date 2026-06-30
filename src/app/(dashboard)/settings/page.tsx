@@ -162,7 +162,7 @@ export default function SettingsPage() {
             <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">О приложении</h3>
             <div className="space-y-2 text-sm text-[var(--text-secondary)]">
               <p>Pixel AI v1.0.0</p>
-              <p>Модели: Logos 2.5 / Ethos 4.1 / Aether 1.5</p>
+              <p>Модели: Logos 1.0 / Ethos 1.0 / Aether 1.0</p>
               <p>UI: Material You (Material 3)</p>
             </div>
           </section>

@@ -3,12 +3,7 @@ import { getSession } from "@/lib/auth";
 import getDb from "@/lib/db";
 import { withErrorHandling } from "@/lib/api-helpers";
 import { checkRateLimit } from "@/lib/rate-limit";
-
-const PLANS = {
-  free: { hourlyLimit: 15, weeklyLimit: 300 },
-  pro: { hourlyLimit: 30, weeklyLimit: -1 },
-  max: { hourlyLimit: -1, weeklyLimit: -1 },
-};
+import { ALLOWED_MODELS, TIER_ORDER, getApiConfig } from "@/lib/constants";
 
 export const POST = (request: Request) =>
   withErrorHandling(async () => {
@@ -23,7 +18,8 @@ export const POST = (request: Request) =>
 
     const db = getDb();
     const { data: profile } = await db.from("profiles").select("*").eq("id", session.userId).single();
-    const tier = (profile?.subscription_tier || "free") as keyof typeof PLANS;
+    const rawTier = (profile?.subscription_tier || "free") as string;
+    const tier = TIER_ORDER.includes(rawTier as typeof TIER_ORDER[number]) ? rawTier : "free";
 
     const { messages, files } = await request.json();
 
@@ -76,16 +72,12 @@ export const POST = (request: Request) =>
       ...messages.slice(-30),
     ];
 
-    const ollamaUrl = process.env.OLLAMA_URL || "https://ollama.com/v1";
+    const model = ALLOWED_MODELS[tier] || ALLOWED_MODELS.free;
+    const api = getApiConfig();
 
-    const model = tier === "max" ? "nemotron-3-super" : tier === "pro" ? "qwen3-coder-next" : "gemma4:31b";
-
-    const response = await fetch(`${ollamaUrl}/chat/completions`, {
+    const response = await fetch(api.url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(process.env.OLLAMA_API_KEY ? { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` } : {}),
-      },
+      headers: api.headers,
       body: JSON.stringify({
         model,
         messages: allMessages,
@@ -95,7 +87,7 @@ export const POST = (request: Request) =>
     });
 
     if (!response.ok) {
-      console.error("[Ollama API]", response.status, await response.text());
+      console.error("[LLM API]", response.status, await response.text());
       return NextResponse.json({ error: "AI service error" }, { status: 502 });
     }
 

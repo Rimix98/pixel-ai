@@ -1,25 +1,5 @@
 import { NextResponse } from "next/server";
 
-export function apiError(message: string, status: number = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
-
-export function apiUnauthorized() {
-  return apiError("Unauthorized", 401);
-}
-
-export function apiNotFound() {
-  return apiError("Not found", 404);
-}
-
-export function apiBadRequest(message: string) {
-  return apiError(message, 400);
-}
-
-export function apiInternal() {
-  return apiError("Internal server error", 500);
-}
-
 export async function withErrorHandling(
   fn: () => Promise<Response | NextResponse>
 ): Promise<Response | NextResponse> {
@@ -27,7 +7,7 @@ export async function withErrorHandling(
     return await fn();
   } catch (err: any) {
     console.error("[API Error]", err?.message || err);
-    return apiInternal();
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

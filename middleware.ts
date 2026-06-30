@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const secretValue = process.env.JWT_SECRET;
-const SECRET = new TextEncoder().encode(secretValue || "dev-only-jwt-secret-not-for-production");
+if (!secretValue) {
+  throw new Error("[Middleware] FATAL: JWT_SECRET must be set.");
+}
+const SECRET = new TextEncoder().encode(secretValue);
 
-const PUBLIC_PATHS = ["/login", "/register", "/", "/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/me", "/api/auth/callback", "/api/stripe/webhook", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/register", "/", "/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/me", "/api/auth/callback", "/api/health"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

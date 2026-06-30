@@ -4,31 +4,15 @@ import getDb from "@/lib/db";
 import { randomUUID } from "crypto";
 import { withErrorHandling } from "@/lib/api-helpers";
 import { webSearch, formatSearchResults } from "@/lib/search";
+import { PLANS, ALLOWED_MODELS, TIER_ORDER, getApiConfig, PROVIDER, modelSupportsVision, getModelForMessage } from "@/lib/constants";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const MAX_MESSAGES = 50;
 const MAX_CONTENT_LENGTH = 4000;
-
-const PLANS = {
-  free: { hourlyLimit: 15, weeklyLimit: 300 },
-  pro: { hourlyLimit: 30, weeklyLimit: -1 },
-  max: { hourlyLimit: -1, weeklyLimit: -1 },
-};
-
-const ALLOWED_MODELS: Record<string, string> = {
-  free: "gemma4:31b",
-  pro: "qwen3-coder-next",
-  max: "nemotron-3-super",
-};
+const VALID_ROLES = new Set(["user", "assistant", "system"]);
 
 const SYSTEM_PROMPT = (userName: string, userPreferences: string) =>
   `You are Pixel AI, a helpful assistant.${userName ? ` The user's name is ${userName}.` : ""}${userPreferences ? ` The user has shared these preferences: ${userPreferences}. Use this to personalize your responses.` : ""} Reply in the same language as the user. Use emojis very sparingly — only when they genuinely add value, not in every message. Use markdown formatting: **bold** for emphasis, \`code\` for inline code, \`\`\`language for code blocks with language highlighting, | tables | for tabular data, # headers, and - bullet lists. Links MUST be formatted as [descriptive text](url), never as [url](url) or (text)(url). Always use short meaningful text as the link label (e.g. [YouTube](https://youtube.com) not [https://youtube.com](https://youtube.com)). Do NOT include any <think> tags or thinking process in your response.`;
-
-function ollamaHeaders(ollamaKey?: string) {
-  return {
-    "Content-Type": "application/json",
-    ...(ollamaKey ? { Authorization: `Bearer ${ollamaKey}` } : {}),
-  };
-}
 
 function ollamaMessages(systemContent: string, userMessages: Array<{ role: string; content: string }>) {
   return [
@@ -37,19 +21,18 @@ function ollamaMessages(systemContent: string, userMessages: Array<{ role: strin
   ];
 }
 
-async function callOllama(
-  ollamaUrl: string,
-  ollamaKey: string | undefined,
+async function callLlm(
   model: string,
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }>,
   stream: boolean,
 ): Promise<Response> {
+  const api = getApiConfig();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 120_000);
   try {
-    return await fetch(`${ollamaUrl}/chat/completions`, {
+    return await fetch(api.url, {
       method: "POST",
-      headers: ollamaHeaders(ollamaKey),
+      headers: api.headers,
       body: JSON.stringify({ model, messages, stream }),
       signal: controller.signal,
     });
@@ -58,34 +41,13 @@ async function callOllama(
   }
 }
 
-async function readFullResponse(response: Response): Promise<string> {
-  const decoder = new TextDecoder();
-  const reader = response.body?.getReader();
-  if (!reader) return "";
-
-  let full = "";
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed === "data: [DONE]" || !trimmed.startsWith("data: ")) continue;
-      try {
-        const parsed = JSON.parse(trimmed.slice(6));
-        const content = parsed.choices?.[0]?.delta?.content || "";
-        full += content;
-      } catch {}
-    }
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const parts = forwarded.split(",").map((p) => p.trim());
+    return parts[parts.length - 1] || "127.0.0.1";
   }
-
-  return full;
+  return "127.0.0.1";
 }
 
 export const POST = (request: Request) =>
@@ -95,6 +57,11 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const ip = getClientIp(request);
+    if (!checkRateLimit(`chat:${session.userId}`, 30, 60_000)) {
+      return NextResponse.json({ error: "Too many requests. Try again in a minute." }, { status: 429 });
+    }
+
     const db = getDb();
 
     const { data: profile } = await db.from("profiles").select("*").eq("id", session.userId).single();
@@ -102,8 +69,9 @@ export const POST = (request: Request) =>
     const userName = profile?.full_name || "";
     const userPreferences = profile?.preferences || "";
 
-    const tier = (profile?.subscription_tier || "free") as keyof typeof PLANS;
-    const plan = PLANS[tier] || PLANS.free;
+    const rawTier = (profile?.subscription_tier || "free") as string;
+    const tier = TIER_ORDER.includes(rawTier as typeof TIER_ORDER[number]) ? rawTier : "free";
+    const plan = PLANS[tier as keyof typeof PLANS] || PLANS.free;
 
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
@@ -158,7 +126,7 @@ export const POST = (request: Request) =>
     }
 
     for (const msg of messages) {
-      if (!msg.role || !msg.content || typeof msg.content !== "string") {
+      if (!msg.role || !VALID_ROLES.has(msg.role) || !msg.content || typeof msg.content !== "string") {
         return NextResponse.json({ error: "Invalid message format" }, { status: 400 });
       }
     }
@@ -166,6 +134,7 @@ export const POST = (request: Request) =>
     const cleanMessages = messages.map((m: any) => ({
       role: m.role,
       content: m.content,
+      image: m.image || null,
     }));
 
     let { data: conversation } = await db
@@ -202,10 +171,8 @@ export const POST = (request: Request) =>
       messages_used_weekly: (weeklyUsed || 0) + 1,
     }).eq("id", session.userId);
 
-    const model = ALLOWED_MODELS[tier] || ALLOWED_MODELS.free;
-
-    const ollamaUrl = process.env.OLLAMA_URL || "https://ollama.com/v1";
-    const ollamaKey = process.env.OLLAMA_API_KEY;
+    const hasImage = cleanMessages.some((m: any) => m.image);
+    const model = getModelForMessage(tier, hasImage);
 
     let searchContext = "";
 
@@ -228,13 +195,25 @@ export const POST = (request: Request) =>
       searchContext
         ? systemContent + `\n\nThe following is context from a web search. Use it to answer the user's question accurately:\n\n${searchContext}`
         : systemContent,
-      cleanMessages.slice(-20).map((m: any) => ({
-        role: m.role,
-        content: m.content?.slice(0, MAX_CONTENT_LENGTH) || "",
-      })),
+      cleanMessages.slice(-20).map((m: any) => {
+        const textContent = m.content?.slice(0, MAX_CONTENT_LENGTH) || "";
+        if (m.image && modelSupportsVision(model)) {
+          return {
+            role: m.role,
+            content: [
+              { type: "text", text: textContent },
+              { type: "image_url", image_url: { url: m.image } },
+            ],
+          };
+        }
+        return {
+          role: m.role,
+          content: textContent,
+        };
+      }),
     );
 
-    const response = await callOllama(ollamaUrl, ollamaKey, model, finalMessages, true);
+    const response = await callLlm(model, finalMessages, true);
 
     if (!response.ok) {
       const errText = await response.text();

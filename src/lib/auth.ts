@@ -3,13 +3,10 @@ import { cookies } from "next/headers";
 
 const secretValue = process.env.JWT_SECRET;
 if (!secretValue) {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("[Auth] FATAL: JWT_SECRET is not set. Refusing to start in production.");
-  }
-  console.error("[Auth] WARNING: JWT_SECRET is not set. Using ephemeral dev key — sessions will not survive restarts.");
+  throw new Error("[Auth] FATAL: JWT_SECRET must be set. Add it to .env.local.");
 }
 
-const SECRET = new TextEncoder().encode(secretValue || "dev-only-jwt-secret-not-for-production");
+const SECRET = new TextEncoder().encode(secretValue);
 
 export interface SessionPayload {
   userId: string;

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import getDb from "@/lib/db";
 import { withErrorHandling } from "@/lib/api-helpers";
 import { generateComment, buildDeepLink, buildTonhubLink, TON_CONFIG, getTierAmount } from "@/lib/ton";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const ALLOWED_TIERS = ["pro", "max"] as const;
 
@@ -11,6 +12,10 @@ export const POST = (request: Request) =>
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!checkRateLimit(`ton-checkout:${session.userId}`, 5, 60_000)) {
+      return NextResponse.json({ error: "Too many checkout attempts. Try again in a minute." }, { status: 429 });
     }
 
     const { tier } = (await request.json()) as { tier?: string };

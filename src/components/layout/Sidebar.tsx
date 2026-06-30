@@ -15,7 +15,6 @@ import {
   FolderOpen,
   Layers,
   SlidersHorizontal,
-  Download,
   Sun,
   Moon,
 } from "lucide-react";
@@ -245,9 +244,6 @@ export function Sidebar() {
               </p>
             </div>
             <div className="flex items-center gap-0.5">
-              <button className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--border)] transition-colors cursor-pointer">
-                <Download size={14} />
-              </button>
               <button
                 onClick={signOut}
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--border)] transition-colors cursor-pointer"

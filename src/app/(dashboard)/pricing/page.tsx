@@ -125,7 +125,7 @@ export default function PricingPage() {
               </button>
               <div className="border-t border-[var(--border)] pt-6 mt-auto">
                 <ul className="space-y-3">
-                  {["Чат в браузере, на телефоне и десктопе", "Генерация кода и анализ данных", "Logos 2.5 модель", "15 сообщений в час", "300 сообщений в неделю"].map((f) => (
+                  {["Чат в браузере, на телефоне и десктопе", "Генерация кода и анализ данных", "Logos 1.0 модель", "15 сообщений в час", "300 сообщений в неделю"].map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]">
                       <Check size={16} className="text-[var(--accent)] mt-0.5 flex-shrink-0" />
                       {f}
@@ -157,7 +157,7 @@ export default function PricingPage() {
               <div className="border-t border-[var(--border)] pt-6 mt-auto">
                 <p className="text-xs font-medium text-[var(--text-muted)] mb-3">Всё из Free, а также:</p>
                 <ul className="space-y-3">
-                  {["Ethos 4.1 модель", "Анализ изображений (бета)", "30 сообщений в час", "Без недельного лимита", "Приоритетная поддержка"].map((f) => (
+                  {["Ethos 1.0 модель", "Анализ изображений (бета)", "30 сообщений в час", "Без недельного лимита", "Приоритетная поддержка"].map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]">
                       <Check size={16} className="text-[var(--accent)] mt-0.5 flex-shrink-0" />
                       {f}
@@ -189,7 +189,7 @@ export default function PricingPage() {
               <div className="border-t border-[var(--border)] pt-6 mt-auto">
                 <p className="text-xs font-medium text-[var(--text-muted)] mb-3">Всё из Pro, а также:</p>
                 <ul className="space-y-3">
-                  {["Aether 1.5 модель", "Ранний доступ к новым функциям", "Без лимитов на сообщения", "Приоритетный доступ в часы пиковых нагрузок"].map((f) => (
+                  {["Aether 1.0 модель", "Ранний доступ к новым функциям", "Без лимитов на сообщения", "Приоритетный доступ в часы пиковых нагрузок"].map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-[var(--text-secondary)]">
                       <Check size={16} className="text-[var(--accent)] mt-0.5 flex-shrink-0" />
                       {f}

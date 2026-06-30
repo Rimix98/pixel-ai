@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { MarkdownText } from "@/components/MarkdownText";
 import { getGreetingTemplate, renderGreeting } from "@/lib/greeting";
+import { canUseModel } from "@/lib/constants";
 
 interface Message {
   id: string;
@@ -17,16 +18,10 @@ interface Message {
 }
 
 const modelOptions = [
-  { name: "Aether 1.5", minTier: "max" },
-  { name: "Ethos 4.1", minTier: "pro" },
-  { name: "Logos 2.5", minTier: "free" },
+  { name: "Aether 1.0", minTier: "max" },
+  { name: "Ethos 1.0", minTier: "pro" },
+  { name: "Logos 1.0", minTier: "free" },
 ];
-
-const TIER_ORDER = ["free", "pro", "max"];
-
-function canUseModel(tier: string, minTier: string) {
-  return TIER_ORDER.indexOf(tier) >= TIER_ORDER.indexOf(minTier);
-}
 
 export default function ChatConversationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -37,7 +32,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
   const [isLoading, setIsLoading] = useState(false);
   const [conversationTitle, setConversationTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [modelName, setModelName] = useState("Logos 2.5");
+  const [modelName, setModelName] = useState("Logos 1.0");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [mounted, setMounted] = useState(false);

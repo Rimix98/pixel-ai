@@ -1,23 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, Mic, AudioLines, PenLine, GraduationCap, Coffee, ChevronDown, Lock } from "lucide-react";
+import { Send, Plus, PenLine, GraduationCap, Coffee, ChevronDown, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { getGreetingTemplate, renderGreeting } from "@/lib/greeting";
+import { canUseModel } from "@/lib/constants";
 
 const modelOptions = [
-  { name: "Aether 1.5", minTier: "max" },
-  { name: "Ethos 4.1", minTier: "pro" },
-  { name: "Logos 2.5", minTier: "free" },
+  { name: "Aether 1.0", minTier: "max" },
+  { name: "Ethos 1.0", minTier: "pro" },
+  { name: "Logos 1.0", minTier: "free" },
 ];
-
-const TIER_ORDER = ["free", "pro", "max"];
-
-function canUseModel(tier: string, minTier: string) {
-  return TIER_ORDER.indexOf(tier) >= TIER_ORDER.indexOf(minTier);
-}
 
 export default function ChatPage() {
   const router = useRouter();
@@ -27,7 +22,7 @@ export default function ChatPage() {
   const [greeting, setGreeting] = useState("");
   const [mounted, setMounted] = useState(false);
   const [isSmiling, setIsSmiling] = useState(false);
-  const [modelName, setModelName] = useState("Logos 2.5");
+  const [modelName, setModelName] = useState("Logos 1.0");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -206,18 +201,6 @@ export default function ChatPage() {
                       </>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
-                  >
-                    <Mic size={20} />
-                  </button>
-                  <button
-                    type="button"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
-                  >
-                    <AudioLines size={20} />
-                  </button>
                   <button
                     type="submit"
                     disabled={isLoading || !input.trim()}
