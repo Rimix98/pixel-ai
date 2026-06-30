@@ -1,7 +1,9 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-const DB_PATH = path.join(process.cwd(), "pixel-ai.db");
+const DB_PATH = process.env.VERCEL
+  ? path.join("/tmp", "pixel-ai.db")
+  : path.join(process.cwd(), "pixel-ai.db");
 
 let _db: Database.Database | null = null;
 

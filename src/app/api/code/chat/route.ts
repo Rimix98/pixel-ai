@@ -78,7 +78,7 @@ export const POST = (request: Request) =>
 
     const ollamaUrl = process.env.OLLAMA_URL || "https://ollama.com/v1";
 
-    const model = tier === "max" ? "nemotron-3-super" : tier === "pro" ? "qwen3-coder-next" : "gemma4:31b-cloud";
+    const model = tier === "max" ? "nemotron-3-super" : tier === "pro" ? "qwen3-coder-next" : "gemma4:31b";
 
     const response = await fetch(`${ollamaUrl}/chat/completions`, {
       method: "POST",

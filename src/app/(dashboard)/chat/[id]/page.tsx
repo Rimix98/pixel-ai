@@ -120,8 +120,14 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
   useEffect(() => {
     if (pendingAutoSubmit.current && (input.trim() || imagePreview) && !isLoading && !conversationNotFound.current) {
       pendingAutoSubmit.current = false;
-      const form = document.querySelector("form");
-      if (form) form.requestSubmit();
+      setTimeout(() => {
+        const form = document.querySelector("form");
+        if (form) {
+          form.requestSubmit();
+        } else {
+          handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+        }
+      }, 100);
     }
   }, [input, imagePreview, isLoading]);
 
@@ -609,6 +615,13 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
                 >
                   <AudioLines size={20} />
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--accent)] text-[var(--text-on-primary)] hover:bg-[var(--accent-hover)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Send size={16} />
                 </button>
               </div>
             </div>

@@ -261,7 +261,7 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[var(--bg-sidebar)] border-t border-[var(--border)] flex items-center justify-around px-4 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-sidebar)] border-t border-[var(--border)] flex items-center justify-around px-4 z-50" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {bottomNavItems.map(({ icon: Icon, href, label }, idx) => {
           const active = isActive(href);
 
