@@ -576,7 +576,7 @@ Reply in the same language as the user.`;
               )}
 
               {/* Preview / Code */}
-              <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117]">
+              <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117] min-w-0">
                 {view === "preview" ? (
                   html ? (
                     <iframe
@@ -584,7 +584,7 @@ Reply in the same language as the user.`;
                         previewRef.current = el;
                         if (el) setPreviewReady(true);
                       }}
-                      className="flex-1 border-0 bg-white"
+                      className="flex-1 w-full h-full border-0 bg-white"
                       sandbox="allow-scripts"
                     />
                   ) : (
