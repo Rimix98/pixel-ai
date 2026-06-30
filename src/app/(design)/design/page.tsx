@@ -274,7 +274,7 @@ RULES:
                   }`}>
                     {msg.role === "assistant" ? (
                       msg.content.includes("<!DOCTYPE") || msg.content.includes("<html") ? (
-                        <span className="text-[var(--text-muted)] italic">Дизайн сгенерирован — смотрите превью →</span>
+                        <span className="text-[var(--text-muted)] italic">Дизайн генерировeуеться, это может занять несколько десяток секунд...</span>
                       ) : (
                         <span className="whitespace-pre-wrap">{msg.content}</span>
                       )
