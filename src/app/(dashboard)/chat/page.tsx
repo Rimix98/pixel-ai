@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, PenLine, GraduationCap, Coffee, ChevronDown, Lock } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Send, Plus, ChevronDown, Lock, Mic, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { getGreetingTemplate, renderGreeting } from "@/lib/greeting";
@@ -14,74 +13,64 @@ const modelOptions = [
   { name: "Logos 1.0", minTier: "free" },
 ];
 
+const suggestions = [
+  { icon: "✍️", label: "Написать", prompt: "Напиши мне эссе на тему" },
+  { icon: "🎓", label: "Учиться", prompt: "Объясни мне концепцию" },
+  { icon: "</>", label: "Код", prompt: "Напиши код для" },
+  { icon: "☕", label: "Бытовое", prompt: "Помоги мне с" },
+  { icon: "✨", label: "Pixel choice", prompt: "Придумай что-нибудь интересное" },
+];
+
 export default function ChatPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [isSmiling, setIsSmiling] = useState(false);
   const [modelName, setModelName] = useState("Logos 1.0");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const greetingTemplateRef = useRef("");
+  const greetingRef = useRef("");
+
   useEffect(() => {
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-    greetingTemplateRef.current = getGreetingTemplate(isMobile);
+    greetingRef.current = getGreetingTemplate(false);
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (greetingTemplateRef.current) {
-      setGreeting(renderGreeting(greetingTemplateRef.current, user?.full_name));
+    if (greetingRef.current) {
+      setGreeting(renderGreeting(greetingRef.current, user?.full_name));
     }
   }, [user]);
 
-
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return;
+    if (!file || file.size > 10 * 1024 * 1024) return;
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
-  const handleMascotClick = () => {
-    setIsSmiling(true);
-    setTimeout(() => setIsSmiling(false), 5000);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!input.trim() && !imagePreview) || isLoading) return;
-
     setIsLoading(true);
-
     try {
       const res = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: (input || "Анализ изображения").slice(0, 50) }),
       });
-
       if (res.ok) {
         const conv = await res.json();
-        const convId = conv?.id;
-        if (!convId) throw new Error("No conversation ID");
-
         if (input.trim()) sessionStorage.setItem("pendingMessage", input.trim());
         if (imagePreview) sessionStorage.setItem("pendingImage", imagePreview);
-
-        window.location.href = `/chat/${convId}`;
+        window.location.href = `/chat/${conv.id}`;
         return;
       }
-    } catch {
-      // fallback
-    }
+    } catch {}
     setIsLoading(false);
   };
 
@@ -90,17 +79,16 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg-main)]">
+      {/* Upgrade banner (mobile hidden, desktop shown) */}
       {tier !== "max" && (
-        <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-[var(--accent)]/10 border-b border-[var(--accent)]/20 text-xs text-[var(--text-primary)]">
-          <span className="font-medium">{tierLabel} план активирован</span>
-          <Link
-            href="/pricing"
-            className="underline underline-offset-2 text-[var(--accent)] hover:opacity-80 transition-opacity"
-          >
+        <div className="hidden md:flex items-center justify-center gap-2 px-4 py-1.5 bg-[var(--accent)]/10 border-b border-[var(--accent)]/20 text-xs text-[var(--text-primary)]">
+          <span className="font-medium">{tierLabel} план</span>
+          <Link href="/pricing" className="underline underline-offset-2 text-[var(--accent)] hover:opacity-80">
             Обновиться
           </Link>
         </div>
       )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -110,19 +98,21 @@ export default function ChatPage() {
         style={{ position: "fixed", top: -9999, left: -9999, opacity: 0, width: 1, height: 1 }}
         onChange={handleImageSelect}
       />
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pb-16 md:pb-0">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <img
-            src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
-            alt="Pixel AI"
-            className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
-            onClick={handleMascotClick}
-            suppressHydrationWarning
-          />
-          <h1 className="text-2xl md:text-4xl font-light text-[var(--text-primary)]">{mounted ? greeting : "\u00A0"}</h1>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pb-20 md:pb-0">
+        {/* Greeting */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles size={24} className="text-[var(--accent)]" />
+          </div>
+          <h1 className="text-2xl md:text-4xl font-light text-[var(--text-primary)]">
+            {mounted ? greeting : "\u00A0"}
+          </h1>
         </div>
 
-        <div className="w-full max-w-2xl mb-4">
+        {/* Input */}
+        <div className="w-full max-w-2xl mb-6">
           <form onSubmit={handleSubmit}>
             <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] p-3 md:p-4">
               {imagePreview && (
@@ -131,7 +121,7 @@ export default function ChatPage() {
                   <button
                     type="button"
                     onClick={() => setImagePreview(null)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 transition-colors cursor-pointer"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 cursor-pointer"
                   >✕</button>
                 </div>
               )}
@@ -141,7 +131,7 @@ export default function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={imagePreview ? "Опишите изображение..." : "Чем могу помочь?"}
                 disabled={isLoading}
-                className="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none outline-none text-base md:text-lg min-h-[40px] md:min-h-[50px]"
+                className="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none outline-none text-base min-h-[40px]"
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -150,28 +140,36 @@ export default function ChatPage() {
                   }
                 }}
               />
-              <div className="flex items-center justify-between mt-2 md:mt-3">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
-                >
-                  <Plus size={20} />
-                </button>
-                <div className="flex items-center gap-1 md:gap-2">
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                  >
+                    <Plus size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                  >
+                    <Mic size={18} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setShowModelDropdown(!showModelDropdown)}
-                      className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-[10px] md:text-xs text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
                     >
                       {modelName}
-                      <ChevronDown size={12} />
+                      <ChevronDown size={10} />
                     </button>
                     {showModelDropdown && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
-                        <div className="absolute bottom-full right-0 mb-1 w-48 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden z-50">
+                        <div className="absolute bottom-full right-0 mb-1 w-44 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden z-50">
                           {modelOptions.map(({ name, minTier }) => {
                             const allowed = canUseModel(tier, minTier);
                             return (
@@ -184,16 +182,16 @@ export default function ChatPage() {
                                   setModelName(name);
                                   setShowModelDropdown(false);
                                 }}
-                                className={`w-full px-4 py-2.5 text-left text-xs flex items-center gap-2 transition-colors ${
+                                className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
                                   !allowed
                                     ? "text-[var(--text-muted)] cursor-not-allowed opacity-50"
                                     : modelName === name
-                                    ? "bg-[var(--accent)]/10 text-[var(--accent)] cursor-pointer"
-                                    : "text-[var(--text-primary)] hover:bg-[var(--border)] cursor-pointer"
+                                    ? "bg-[var(--accent)]/10 text-[var(--accent)]"
+                                    : "text-[var(--text-primary)] hover:bg-[var(--border)]"
                                 }`}
                               >
                                 {name}
-                                {!allowed && <Lock size={12} className="ml-auto" />}
+                                {!allowed && <Lock size={10} className="ml-auto" />}
                               </button>
                             );
                           })}
@@ -203,10 +201,10 @@ export default function ChatPage() {
                   </div>
                   <button
                     type="submit"
-                    disabled={isLoading || !input.trim()}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--accent)] text-[var(--text-on-primary)] hover:bg-[var(--accent-hover)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    disabled={isLoading || (!input.trim() && !imagePreview)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-on-primary)] hover:bg-[var(--accent-hover)] transition-all disabled:opacity-30 cursor-pointer"
                   >
-                    <Send size={16} />
+                    <Send size={14} />
                   </button>
                 </div>
               </div>
@@ -214,26 +212,18 @@ export default function ChatPage() {
           </form>
         </div>
 
+        {/* Suggestion chips */}
         <div className="flex flex-wrap gap-2 justify-center">
-          {[
-            { icon: PenLine, label: "Написать", color: "text-purple-400" },
-            { icon: GraduationCap, label: "Учиться", color: "text-blue-400" },
-            { icon: Coffee, label: "Бытовое", color: "text-orange-400" },
-          ].map(({ icon: Icon, label, color }) => (
+          {suggestions.map(({ icon, label, prompt }) => (
             <button
               key={label}
               onClick={() => {
-                const prompts: Record<string, string> = {
-                  Написать: "Напиши мне эссе на тему",
-                  Учиться: "Объясни мне концепцию",
-                  "Бытовое": "Помоги мне с",
-                };
-                setInput(prompts[label] || "");
+                setInput(prompt);
                 inputRef.current?.focus();
               }}
-              className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-[var(--bg-surface)]/50 border border-[var(--border)] text-xs md:text-sm text-[var(--text-primary)] hover:bg-[var(--border)] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)]/50 border border-[var(--border)] text-xs text-[var(--text-primary)] hover:bg-[var(--border)] transition-all cursor-pointer"
             >
-              <Icon size={14} className={color} />
+              <span>{icon}</span>
               {label}
             </button>
           ))}
