@@ -77,3 +77,8 @@ export function getApiConfig() {
 export function canUseModel(tier: string, minTier: string): boolean {
   return TIER_ORDER.indexOf(tier as typeof TIER_ORDER[number]) >= TIER_ORDER.indexOf(minTier as typeof TIER_ORDER[number]);
 }
+
+export const DESIGN_MODEL: Record<Provider, string> = {
+  groq: "openai/gpt-oss-120b",
+  ollama: "gemma4:31b",
+};

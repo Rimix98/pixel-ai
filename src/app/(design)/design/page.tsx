@@ -20,6 +20,7 @@ export default function DesignPage() {
   const [copied, setCopied] = useState(false);
   const [convId, setConvId] = useState<string | null>(null);
   const [designs, setDesigns] = useState<Array<{ id: string; title: string; updated_at: string }>>([]);
+  const [previewKey, setPreviewKey] = useState(0);
   const searchParams = useSearchParams();
   const previewRef = useRef<HTMLIFrameElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -125,6 +126,7 @@ RULES:
         body: JSON.stringify({
           messages: allMessages.map((m) => ({ role: m.role, content: m.content })),
           conversationId: conversationId || crypto.randomUUID(),
+          modelOverride: "design",
         }),
       });
 
@@ -325,7 +327,7 @@ RULES:
             <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)]">
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setView("preview")}
+                  onClick={() => { setView("preview"); setPreviewKey((k) => k + 1); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                     view === "preview" ? "bg-[var(--accent)]/15 text-[var(--accent)]" : "text-[var(--text-secondary)] hover:bg-[var(--border)]"
                   }`}
@@ -363,10 +365,15 @@ RULES:
               )}
             </div>
 
-            <div className="flex-1 relative bg-white">
+            <div className="flex-1 relative bg-white overflow-hidden">
               {view === "preview" ? (
                 html ? (
-                  <iframe ref={previewRef} className="w-full h-full border-0" sandbox="allow-scripts" />
+                  <iframe
+                    key={previewKey}
+                    ref={previewRef}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts"
+                  />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
                     <Sparkles size={48} className="mb-4 opacity-30" />
@@ -374,7 +381,7 @@ RULES:
                   </div>
                 )
               ) : (
-                <pre className="h-full overflow-auto p-4 bg-[#1e1e2e] text-[#cdd6f4] font-mono text-sm leading-relaxed">
+                <pre className="absolute inset-0 overflow-auto p-4 bg-[#1e1e2e] text-[#cdd6f4] font-mono text-sm leading-relaxed m-0">
                   <code>{html || "// Код появится здесь после генерации"}</code>
                 </pre>
               )}

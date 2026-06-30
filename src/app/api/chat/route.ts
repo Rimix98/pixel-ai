@@ -4,7 +4,7 @@ import getDb from "@/lib/db";
 import { randomUUID } from "crypto";
 import { withErrorHandling } from "@/lib/api-helpers";
 import { webSearch, formatSearchResults } from "@/lib/search";
-import { PLANS, ALLOWED_MODELS, TIER_ORDER, getApiConfig, PROVIDER, modelSupportsVision, getModelForMessage } from "@/lib/constants";
+import { PLANS, ALLOWED_MODELS, TIER_ORDER, getApiConfig, PROVIDER, modelSupportsVision, getModelForMessage, DESIGN_MODEL } from "@/lib/constants";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const MAX_MESSAGES = 50;
@@ -115,7 +115,7 @@ export const POST = (request: Request) =>
     }
 
     const body = await request.json();
-    const { messages, conversationId } = body;
+    const { messages, conversationId, modelOverride } = body;
 
     if (!Array.isArray(messages) || !conversationId) {
       return NextResponse.json({ error: "Missing messages or conversationId" }, { status: 400 });
@@ -172,7 +172,9 @@ export const POST = (request: Request) =>
     }).eq("id", session.userId);
 
     const hasImage = cleanMessages.some((m: any) => m.image);
-    const model = getModelForMessage(tier, hasImage);
+    const model = modelOverride === "design"
+      ? DESIGN_MODEL[PROVIDER]
+      : getModelForMessage(tier, hasImage);
 
     let searchContext = "";
 
