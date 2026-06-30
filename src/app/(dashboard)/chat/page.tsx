@@ -75,13 +75,19 @@ export default function ChatPage() {
 
       if (res.ok) {
         const conv = await res.json();
+        const convId = conv?.id;
+        if (!convId) throw new Error("No conversation ID");
+
         if (input.trim()) sessionStorage.setItem("pendingMessage", input.trim());
         if (imagePreview) sessionStorage.setItem("pendingImage", imagePreview);
-        router.push(`/chat/${conv.id}`);
+
+        window.location.href = `/chat/${convId}`;
+        return;
       }
     } catch {
-      setIsLoading(false);
+      // fallback
     }
+    setIsLoading(false);
   };
 
   const tier = user?.subscription_tier || "free";

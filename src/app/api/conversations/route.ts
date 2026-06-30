@@ -28,11 +28,11 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, model } = await request.json();
+    const { title, model, id: clientId } = await request.json();
     const safeTitle = sanitizeInput(title, 200) || "Новый чат";
 
     const db = getDb();
-    const id = randomUUID();
+    const id = clientId || randomUUID();
 
     await db.from("conversations").insert({
       id,

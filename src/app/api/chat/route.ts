@@ -168,7 +168,7 @@ export const POST = (request: Request) =>
       content: m.content,
     }));
 
-    const { data: conversation } = await db
+    let { data: conversation } = await db
       .from("conversations")
       .select("*")
       .eq("id", conversationId)
@@ -176,7 +176,13 @@ export const POST = (request: Request) =>
       .single();
 
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      await db.from("conversations").insert({
+        id: conversationId,
+        user_id: session.userId,
+        title: cleanMessages[0]?.content?.slice(0, 50) || "Новый чат",
+        model: "llama3-70b-8192",
+      });
+      conversation = { id: conversationId, user_id: session.userId };
     }
 
     const userMessage = cleanMessages[cleanMessages.length - 1];
