@@ -407,7 +407,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
         <div className="flex items-center gap-2 px-3 md:px-4 py-3 bg-[var(--warning-bg)] border-b border-[var(--warning-border)] text-[var(--warning-text)] text-xs md:text-sm">
           <AlertTriangle size={16} />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto opacity-50 hover:opacity-100 cursor-pointer">✕</button>
+          <button onClick={() => setError(null)} className="ml-auto opacity-50 hover:opacity-100 cursor-pointer"><X size={12} /></button>
         </div>
       )}
 

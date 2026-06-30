@@ -3,18 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Code, PenLine, BarChart3, Palette, BookOpen, Briefcase, Bot } from "lucide-react";
 
 type Step = "credentials" | "profile";
 
 const PREFERENCE_OPTIONS = [
-  { id: "code", label: "Программирование", icon: "💻" },
-  { id: "writing", label: "Тексты и статьи", icon: "✍️" },
-  { id: "analysis", label: "Анализ данных", icon: "📊" },
-  { id: "creative", label: "Творчество", icon: "🎨" },
-  { id: "learning", label: "Обучение", icon: "📚" },
-  { id: "business", label: "Бизнес", icon: "💼" },
-  { id: "general", label: "Общие задачи", icon: "🤖" },
+  { id: "code", label: "Программирование", icon: Code },
+  { id: "writing", label: "Тексты и статьи", icon: PenLine },
+  { id: "analysis", label: "Анализ данных", icon: BarChart3 },
+  { id: "creative", label: "Творчество", icon: Palette },
+  { id: "learning", label: "Обучение", icon: BookOpen },
+  { id: "business", label: "Бизнес", icon: Briefcase },
+  { id: "general", label: "Общие задачи", icon: Bot },
 ];
 
 export default function RegisterPage() {
@@ -199,7 +199,7 @@ export default function RegisterPage() {
                           : "bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-muted)]"
                       }`}
                     >
-                      <span>{pref.icon}</span>
+                      <pref.icon size={16} />
                       <span>{pref.label}</span>
                     </button>
                   ))}

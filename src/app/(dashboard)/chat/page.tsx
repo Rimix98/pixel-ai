@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, ChevronDown, Lock, Mic, Sparkles } from "lucide-react";
+import { Send, Plus, ChevronDown, Lock, Mic, Sparkles, PenLine, GraduationCap, Coffee, Code, X } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { getGreetingTemplate, renderGreeting } from "@/lib/greeting";
@@ -14,11 +14,11 @@ const modelOptions = [
 ];
 
 const suggestions = [
-  { icon: "✍️", label: "Написать", prompt: "Напиши мне эссе на тему" },
-  { icon: "🎓", label: "Учиться", prompt: "Объясни мне концепцию" },
-  { icon: "</>", label: "Код", prompt: "Напиши код для" },
-  { icon: "☕", label: "Бытовое", prompt: "Помоги мне с" },
-  { icon: "✨", label: "Pixel choice", prompt: "Придумай что-нибудь интересное" },
+  { icon: PenLine, label: "Написать", prompt: "Напиши мне эссе на тему" },
+  { icon: GraduationCap, label: "Учиться", prompt: "Объясни мне концепцию" },
+  { icon: Code, label: "Код", prompt: "Напиши код для" },
+  { icon: Coffee, label: "Бытовое", prompt: "Помоги мне с" },
+  { icon: Sparkles, label: "Pixel choice", prompt: "Придумай что-нибудь интересное" },
 ];
 
 export default function ChatPage() {
@@ -122,7 +122,7 @@ export default function ChatPage() {
                     type="button"
                     onClick={() => setImagePreview(null)}
                     className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 cursor-pointer"
-                  >✕</button>
+                  ><X size={12} /></button>
                 </div>
               )}
               <textarea
@@ -214,7 +214,7 @@ export default function ChatPage() {
 
         {/* Suggestion chips */}
         <div className="flex flex-wrap gap-2 justify-center">
-          {suggestions.map(({ icon, label, prompt }) => (
+          {suggestions.map(({ icon: Icon, label, prompt }) => (
             <button
               key={label}
               onClick={() => {
@@ -223,7 +223,7 @@ export default function ChatPage() {
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)]/50 border border-[var(--border)] text-xs text-[var(--text-primary)] hover:bg-[var(--border)] transition-all cursor-pointer"
             >
-              <span>{icon}</span>
+              <Icon size={14} className="text-[var(--accent)]" />
               {label}
             </button>
           ))}
