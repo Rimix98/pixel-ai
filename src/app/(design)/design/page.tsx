@@ -511,99 +511,95 @@ Reply in the same language as the user.`;
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex overflow-hidden">
-            <>
-              {/* Chat Panel */}
-              {!fullscreen && (
-                <div className="w-96 flex flex-col border-r border-gray-800 bg-[#0d1117]">
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm ${
-                          msg.role === "user"
-                            ? "bg-[#7c3aed] text-white rounded-tr-sm"
-                            : "bg-gray-800/50 text-gray-200 rounded-tl-sm border border-gray-700"
-                        }`}>
-                          {msg.role === "assistant" ? (
-                            extractHtml(msg.content) ? (
-                              <span className="text-gray-400 italic">Дизайн обновлён — смотрите превью →</span>
-                            ) : (
-                              <span className="whitespace-pre-wrap">{msg.content}</span>
-                            )
+          <div className="flex-1 relative overflow-hidden">
+            {/* Preview / Code — Full Width Background */}
+            <div className="absolute inset-0">
+              {view === "preview" ? (
+                html ? (
+                  <iframe
+                    ref={(el) => {
+                      previewRef.current = el;
+                      if (el) setPreviewReady(true);
+                    }}
+                    className="w-full h-full border-0 bg-white"
+                    sandbox="allow-scripts"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#0d1117] text-gray-500">
+                    <p className="text-sm">Ожидание генерации...</p>
+                  </div>
+                )
+              ) : (
+                <textarea
+                  ref={codeRef}
+                  value={html}
+                  onChange={(e) => handleCodeEdit(e.target.value)}
+                  className="w-full h-full p-4 bg-[#1e1e2e] text-[#cdd6f4] font-mono text-sm leading-relaxed resize-none outline-none"
+                  spellCheck={false}
+                />
+              )}
+            </div>
+
+            {/* Chat Panel — Floating Overlay */}
+            {!fullscreen && (
+              <div className="absolute top-0 left-0 bottom-0 w-96 flex flex-col bg-[#0d1117]/95 backdrop-blur-sm border-r border-gray-800 z-10">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm ${
+                        msg.role === "user"
+                          ? "bg-[#7c3aed] text-white rounded-tr-sm"
+                          : "bg-gray-800/50 text-gray-200 rounded-tl-sm border border-gray-700"
+                      }`}>
+                        {msg.role === "assistant" ? (
+                          extractHtml(msg.content) ? (
+                            <span className="text-gray-400 italic">Дизайн обновлён — смотрите превью →</span>
                           ) : (
                             <span className="whitespace-pre-wrap">{msg.content}</span>
-                          )}
-                          {loading && i === messages.length - 1 && msg.role === "assistant" && !msg.content && (
-                            <div className="flex gap-1 py-1">
-                              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                            </div>
-                          )}
-                        </div>
+                          )
+                        ) : (
+                          <span className="whitespace-pre-wrap">{msg.content}</span>
+                        )}
+                        {loading && i === messages.length - 1 && msg.role === "assistant" && !msg.content && (
+                          <div className="flex gap-1 py-1">
+                            <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    <div ref={chatEndRef} />
-                  </div>
-
-                  <div className="p-3 border-t border-gray-800">
-                    <div className="relative">
-                      <textarea
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                          }
-                        }}
-                        placeholder={html ? "Измените дизайн..." : "Опишите сайт..."}
-                        rows={2}
-                        disabled={loading}
-                        className="w-full bg-gray-800/50 rounded-xl border border-gray-700 px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c3aed] transition-colors resize-none"
-                      />
-                      <button
-                        onClick={handleSend}
-                        disabled={loading || !prompt.trim()}
-                        className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-[#7c3aed] text-white hover:bg-[#6d28d9] transition-colors disabled:opacity-50 cursor-pointer"
-                      >
-                        {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                      </button>
                     </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+
+                <div className="p-3 border-t border-gray-800">
+                  <div className="relative">
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      placeholder={html ? "Измените дизайн..." : "Опишите сайт..."}
+                      rows={2}
+                      disabled={loading}
+                      className="w-full bg-gray-800/50 rounded-xl border border-gray-700 px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 outline-none focus:border-[#7c3aed] transition-colors resize-none"
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={loading || !prompt.trim()}
+                      className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-[#7c3aed] text-white hover:bg-[#6d28d9] transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    </button>
                   </div>
                 </div>
-              )}
-
-              {/* Preview / Code */}
-              <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117] min-w-0">
-                {view === "preview" ? (
-                  html ? (
-                    <iframe
-                      ref={(el) => {
-                        previewRef.current = el;
-                        if (el) setPreviewReady(true);
-                      }}
-                      className="flex-1 w-full h-full border-0 bg-white"
-                      sandbox="allow-scripts"
-                    />
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-500">
-                      <p className="text-sm">Ожидание генерации...</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="flex-1 relative">
-                    <textarea
-                      ref={codeRef}
-                      value={html}
-                      onChange={(e) => handleCodeEdit(e.target.value)}
-                      className="absolute inset-0 w-full h-full p-4 bg-[#1e1e2e] text-[#cdd6f4] font-mono text-sm leading-relaxed resize-none outline-none"
-                      spellCheck={false}
-                    />
-                  </div>
-                )}
               </div>
-            </>
+            )}
           </div>
         )}
       </div>
