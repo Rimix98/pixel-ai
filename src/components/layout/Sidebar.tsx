@@ -205,14 +205,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       </aside>
 
       {/* Mobile overlay */}
-      {open && (
-        <>
-          <div className="md:hidden fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-          <div className="md:hidden fixed inset-y-0 left-0 w-72 z-50 shadow-2xl">
-            {sidebarContent}
-          </div>
-        </>
-      )}
+      <div
+        className={`md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+      <div
+        className={`md:hidden fixed inset-y-0 left-0 w-72 z-50 shadow-2xl transition-transform duration-300 ease-in-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {sidebarContent}
+      </div>
     </>
   );
 }
