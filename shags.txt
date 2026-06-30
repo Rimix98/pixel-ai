@@ -1,0 +1,153 @@
+====================================
+  DEPLOY: Pixel AI → Vercel
+====================================
+
+ВАЖНО: Проект использует SQLite (better-sqlite3).
+SQLite НЕ работает на Vercel serverless — файл БД теряется
+между вызовами. Для деплоя на Vercel нужен внешний SQLite-сервис
+(например Turso) или миграция на PostgreSQL.
+
+Если деплоишь на自己的 сервер (VPS/Docker) — SQLite работает нормально.
+
+
+ШАГ 1: Подготовка
+-----------------
+
+1.1  Сгенерируй JWT_SECRET командой:
+
+     Windows PowerShell:
+     -join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Max 256) })
+
+     macOS / Linux:
+     openssl rand -hex 32
+
+     Сохрани результат — это будет JWT_SECRET
+
+1.2  Создай TON-кошелёк (Tonkeeper / MyTonWallet)
+     Скопируй адрес кошелька (начинается с UQ... или EQ...)
+
+
+ШАГ 2: Переменные окружения
+----------------------------
+
+Создай .env.local (или настрой в хостинге):
+
+     Переменная                    Значение
+     ────────────────────────────  ──────────────────────────────
+     JWT_SECRET                    (результат из 1.1)
+     OLLAMA_URL                    https://ollama.com/v1
+     OLLAMA_API_KEY                твой ключ Ollama API
+     NEXT_PUBLIC_BASE_URL          https://твой-домен
+     TON_WALLET_ADDRESS            (адрес из 1.2)
+     TON_PRO_AMOUNT                0.4
+     TON_MAX_AMOUNT                0.8
+     TAVILY_API_KEY                (опционально, для поиска в интернете)
+
+
+ШАГ 3: Деплой на VPS (рекомендуется)
+-------------------------------------
+
+3.1  Подними сервер:
+     - Ubuntu 22.04+ / Debian 12+
+     - Node.js 20+ (https://nodejs.org)
+     - Git
+
+3.2  Клонируй репозиторий:
+     git clone <url>
+     cd pixel-ai
+
+3.3  Установи зависимости:
+     npm install
+
+3.4  Создай .env.local (см. Шаг 2)
+
+3.5  Собери проект:
+     npm run build
+
+3.6  Запусти:
+     npm start
+
+     Сервер стартует на :3000
+
+3.7  Настрой reverse proxy (nginx/caddy) для HTTPS:
+
+     # Пример для Caddy:
+     твой-домен {
+         reverse_proxy localhost:3000
+     }
+
+3.8  Настрой автозапуск (systemd):
+
+     [Unit]
+     Description=Pixel AI
+     After=network.target
+
+     [Service]
+     Type=simple
+     User=www-data
+     WorkingDirectory=/path/to/pixel-ai
+     ExecStart=/usr/bin/node server.js
+     Restart=always
+     Environment=NODE_ENV=production
+
+     [Install]
+     WantedBy=multi-user.target
+
+
+ШАГ 4: Деплой на Vercel (альтернатива)
+---------------------------------------
+
+4.1  Перейди на https://vercel.com
+
+4.2  Импортируй GitHub-репозиторий
+
+4.3  В Environment Variables добавь все переменные из Шага 2
+
+4.4  Деплой
+
+     ⚠️  SQLite-БД НЕ будет сохраняться между деплоями.
+     Для Vercel нужен Turso/libSQL или миграция на PostgreSQL.
+
+
+ШАГ 5: Тестирование оплаты
+---------------------------
+
+5.1  Зарегистрируйся на сайте
+
+5.2  Перейди на /pricing
+
+5.3  Нажми "Активировать Pro" (0.4 TON)
+
+5.4  Скопируй адрес и комментарий из модалки
+
+5.5  Отправь 0.4 TON из кошелька Tonkeeper с этим комментарием
+
+5.6  Ожидай подтверждения (проверка каждые 5 сек через toncenter.com)
+
+5.7  После подтверждения план активируется автоматически
+
+
+ШАГ 6: Домен
+-------------
+
+6.1  В хостинге настрой домен на сервер
+
+6.2  Обнови NEXT_PUBLIC_BASE_URL в .env.local на новый домен
+
+6.3  Пересобери и перезапусти:
+     npm run build
+     npm start
+
+
+ШАГ 7: Проверка
+----------------
+
+7.1  Открой: https://твой-домен/api/health
+     Должно отобразиться:
+     {"status":"ok","timestamp":"..."}
+
+7.2  Открой главную страницу → должна открыться страница логина
+
+7.3  Зарегистрируйся, войди, отправь сообщение в чат
+
+7.4  Перейди на /pricing и проверь что кнопки TON работают

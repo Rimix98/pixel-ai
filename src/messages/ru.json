@@ -1,0 +1,39 @@
+{
+  "title": "Pixel AI",
+  "nav": {
+    "home": "Главная",
+    "chat": "Чат",
+    "pricing": "Тарифы",
+    "settings": "Настройки",
+    "logout": "Выйти"
+  },
+  "auth": {
+    "login": "Войти",
+    "register": "Регистрация",
+    "email": "Электронная почта",
+    "password": "Пароль"
+  },
+  "pricing": {
+    "title": "Выберите свой тариф",
+    "subtitle": "Начните бесплатно, обновитесь когда будете готовы",
+    "popular": "Популярный",
+    "current": "Текущий план",
+    "upgrade": "Обновить",
+    "manage": "Управление",
+    "features_20_messages": "20 сообщений в день",
+    "features_200_messages": "200 сообщений в день",
+    "features_unlimited": "Безлимитные сообщения",
+    "features_llama3": "Llama 3 70B",
+    "features_mixed": "Llama 3 70B + Mixtral",
+    "features_all_models": "Все модели",
+    "features_basic": "Базовые функции",
+    "features_browser": "Браузерный доступ",
+    "features_priority": "Приоритетная поддержка",
+    "features_advanced": "Расширенные промпты",
+    "features_history": "История 30 дней",
+    "features_api": "API доступ",
+    "features_manager": "Персональный менеджер",
+    "features_sla": "SLA 99.9%",
+    "features_custom": "Кастомная интеграция"
+  }
+}

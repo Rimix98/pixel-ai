@@ -1,0 +1,39 @@
+{
+  "title": "Pixel AI",
+  "nav": {
+    "home": "Home",
+    "chat": "Chat",
+    "pricing": "Pricing",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password"
+  },
+  "pricing": {
+    "title": "Choose your plan",
+    "subtitle": "Start for free, upgrade when you're ready",
+    "popular": "Popular",
+    "current": "Current plan",
+    "upgrade": "Upgrade",
+    "manage": "Manage",
+    "features_20_messages": "20 messages per day",
+    "features_200_messages": "200 messages per day",
+    "features_unlimited": "Unlimited messages",
+    "features_llama3": "Llama 3 70B",
+    "features_mixed": "Llama 3 70B + Mixtral",
+    "features_all_models": "All models",
+    "features_basic": "Basic features",
+    "features_browser": "Browser access",
+    "features_priority": "Priority support",
+    "features_advanced": "Advanced prompts",
+    "features_history": "30 days history",
+    "features_api": "API access",
+    "features_manager": "Personal manager",
+    "features_sla": "SLA 99.9%",
+    "features_custom": "Custom integration"
+  }
+}
