@@ -10,7 +10,6 @@ import {
   LogOut,
   CreditCard,
   Search,
-  Image,
   Trash2,
   FolderOpen,
   Layers,
@@ -88,16 +87,9 @@ export function Sidebar() {
 
   const isActive = (href: string) => pathname === href;
 
-  const chatConversations = conversations.filter((c) => c.model !== "design");
-  const designConversations = conversations.filter((c) => c.model === "design");
-
-  const filteredChat = searchQuery.trim()
-    ? chatConversations.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : chatConversations;
-
-  const filteredDesigns = searchQuery.trim()
-    ? designConversations.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : designConversations;
+  const filteredConversations = searchQuery.trim()
+    ? conversations.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : conversations;
 
   return (
     <>
@@ -174,24 +166,11 @@ export function Sidebar() {
             })}
           </div>
 
-          {/* Products section */}
-          <div className="mt-6">
-            <p className="px-3 mb-1 text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">
-              Продукты
-            </p>
-            <Link href="/design">
-              <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">
-                <Image size={16} aria-hidden="true" />
-                <span className="text-[13px]">Дизайн</span>
-              </div>
-            </Link>
-          </div>
-
           {/* Recents section */}
           <div className="mt-6">
             <div className="flex items-center justify-between px-3 mb-1">
               <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                Недавние чаты
+                Недавние
               </p>
             </div>
 
@@ -200,12 +179,12 @@ export function Sidebar() {
                 <div className="flex items-center justify-center py-6">
                   <div className="w-4 h-4 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
                 </div>
-              ) : filteredChat.length === 0 ? (
+              ) : filteredConversations.length === 0 ? (
                 <p className="px-3 py-2 text-[12px] text-[var(--text-muted)]">
                   {searchQuery ? "Ничего не найдено" : "Пока нет чатов"}
                 </p>
               ) : (
-                filteredChat.slice(0, 8).map((conv) => (
+                filteredConversations.slice(0, 8).map((conv) => (
                   <Link
                     key={conv.id}
                     href={`/chat/${conv.id}`}
@@ -225,34 +204,6 @@ export function Sidebar() {
                 ))
               )}
             </div>
-
-            {filteredDesigns.length > 0 && (
-              <>
-                <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider px-3 mt-4 mb-1">
-                  Дизайны
-                </p>
-                <div className="space-y-0.5">
-                  {filteredDesigns.slice(0, 5).map((conv) => (
-                    <Link
-                      key={conv.id}
-                      href={`/design?id=${conv.id}`}
-                      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--border)] transition-colors cursor-pointer"
-                    >
-                      <Layers size={14} className="text-[var(--text-muted)] flex-shrink-0" />
-                      <span className="flex-1 text-[13px] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] truncate transition-colors">
-                        {conv.title}
-                      </span>
-                      <button
-                        onClick={(e) => handleDeleteConversation(conv.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 transition-all cursor-pointer"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
         </nav>
 
