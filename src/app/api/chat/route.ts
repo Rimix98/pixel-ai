@@ -89,16 +89,6 @@ async function callLlm(
     temperature: 0.3,
   };
 
-  // Force JSON response format for Groq (only supported models)
-  const JSON_MODELS = new Set([
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "qwen/qwen3.6-27b",
-    "openai/gpt-oss-120b",
-  ]);
-  if (PROVIDER === "groq" && JSON_MODELS.has(model)) {
-    body.response_format = { type: "json_object" };
-  }
-
   try {
     return await fetch(api.url, {
       method: "POST",
