@@ -6,6 +6,7 @@ create table if not exists public.users (
   email text unique not null,
   password_hash text not null,
   full_name text default '',
+  tg_verified boolean default false,
   created_at text default (now() at time zone 'utc')::text
 );
 
@@ -64,6 +65,16 @@ create table if not exists public.artifacts (
   updated_at text default (now() at time zone 'utc')::text
 );
 
+create table if not exists public.tg_bot_verification (
+  id text primary key default gen_random_uuid()::text,
+  user_id text not null references public.users(id) on delete cascade,
+  code text not null,
+  attempts integer default 0,
+  expires_at text not null,
+  used_at text,
+  created_at text default (now() at time zone 'utc')::text
+);
+
 create table if not exists public.ton_orders (
   id text primary key default gen_random_uuid()::text,
   user_id text not null references public.users(id) on delete cascade,
@@ -83,6 +94,7 @@ create index if not exists idx_conversations_project_id on public.conversations(
 create index if not exists idx_artifacts_user_id on public.artifacts(user_id);
 create index if not exists idx_ton_orders_user_id on public.ton_orders(user_id);
 create index if not exists idx_ton_orders_comment on public.ton_orders(comment);
+create index if not exists idx_tg_bot_verification_user_id on public.tg_bot_verification(user_id);
 
 -- Disable RLS for all tables (auth handled by middleware + service role key)
 alter table public.users disable row level security;
@@ -92,3 +104,4 @@ alter table public.conversations disable row level security;
 alter table public.messages disable row level security;
 alter table public.artifacts disable row level security;
 alter table public.ton_orders disable row level security;
+alter table public.tg_bot_verification disable row level security;

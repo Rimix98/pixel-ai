@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import getDb from "@/lib/db";
-import { createSession } from "@/lib/auth";
-import { withErrorHandling, validateEmail, sanitizeInput } from "@/lib/api-helpers";
+import { withErrorHandling, validateEmail } from "@/lib/api-helpers";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export const POST = (request: Request) =>
@@ -13,7 +12,7 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Too many attempts. Try again in a minute." }, { status: 429 });
     }
 
-    const { email, password, full_name, preferences } = await request.json();
+    const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -27,9 +26,6 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Password must be 6-128 characters" }, { status: 400 });
     }
 
-    const safeName = sanitizeInput(full_name, 200);
-    const safePrefs = sanitizeInput(preferences, 2000);
-
     const bcrypt = await import("bcryptjs");
     const db = getDb();
     const { data: existing } = await db.from("users").select("id").eq("email", email).single();
@@ -40,10 +36,14 @@ export const POST = (request: Request) =>
     const id = randomUUID();
     const passwordHash = await bcrypt.hash(password, 12);
 
-    await db.from("users").insert({ id, email, password_hash: passwordHash, full_name: safeName });
-    await db.from("profiles").insert({ id, email, full_name: safeName, preferences: safePrefs });
+    await db.from("users").insert({
+      id,
+      email,
+      password_hash: passwordHash,
+      full_name: "",
+      tg_verified: false,
+    });
+    await db.from("profiles").insert({ id, email, full_name: "", preferences: "" });
 
-    await createSession(id, email);
-
-    return NextResponse.json({ user: { id, email, full_name: safeName } });
+    return NextResponse.json({ userId: id, email });
   });

@@ -169,7 +169,6 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
       if (response.status === 429) {
         const data = await response.json();
         setError(data.error || "Лимит сообщений исчерпан");
-        setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
         return;
       }
 
@@ -180,7 +179,6 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
 
       if (response.status === 404) {
         setError("Чат не найден. Возможно, он был удалён.");
-        setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
         return;
       }
 
@@ -232,16 +230,9 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
           }
         }
       }
+      window.dispatchEvent(new Event("conversations-updated"));
     } catch (err: any) {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: err?.message || "Произошла ошибка. Попробуйте снова.",
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      setError(err?.message || "Произошла ошибка. Попробуйте снова.");
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -396,10 +387,10 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input - sticky at bottom on mobile */}
-      <div className="sticky bottom-0 px-3 md:px-4 pb-3 md:pb-4 pt-2 bg-[var(--bg-main)] md:bg-transparent z-10">
+      {/* Input - fixed at bottom on mobile */}
+      <div className="fixed bottom-0 left-0 right-0 px-3 md:px-4 pb-3 md:pb-4 pt-2 bg-[var(--bg-main)] z-10 md:static md:bg-transparent">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-          <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] p-3 md:p-4 mb-16 md:mb-0">
+          <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] p-3 md:p-4">
             {imagePreview && (
               <div className="relative mb-2 inline-block">
                 <img

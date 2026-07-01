@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -37,6 +37,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
+
+  const handleDeleteConversation = useCallback(async (id: string) => {
+    if (!window.confirm("Удалить этот чат?")) return;
+    await fetch(`/api/conversations/${id}`, { method: "DELETE" });
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+  }, []);
+
+  const fetchConversations = async () => {
+    const res = await fetch("/api/conversations");
+    if (res.ok) setConversations(await res.json());
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -52,20 +65,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    const interval = setInterval(async () => {
-      const res = await fetch("/api/conversations");
-      if (res.ok && !cancelled) setConversations(await res.json());
-    }, 5000);
-    return () => { cancelled = true; clearInterval(interval); };
+    const handler = () => fetchConversations();
+    window.addEventListener("conversations-updated", handler);
+    return () => window.removeEventListener("conversations-updated", handler);
   }, []);
-
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    await fetch(`/api/conversations/${id}`, { method: "DELETE" });
-    setConversations((prev) => prev.filter((c) => c.id !== id));
-  };
 
   const isActive = (href: string) => pathname === href;
 
@@ -154,7 +157,32 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <Link
                 key={conv.id}
                 href={`/chat/${conv.id}`}
-                onClick={onClose}
+                onClick={(e) => {
+                  if (longPressTriggered.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  onClose();
+                }}
+                onTouchStart={() => {
+                  longPressTriggered.current = false;
+                  longPressTimer.current = setTimeout(() => {
+                    longPressTriggered.current = true;
+                    handleDeleteConversation(conv.id);
+                  }, 500);
+                }}
+                onTouchEnd={() => {
+                  if (longPressTimer.current) {
+                    clearTimeout(longPressTimer.current);
+                    longPressTimer.current = null;
+                  }
+                }}
+                onTouchMove={() => {
+                  if (longPressTimer.current) {
+                    clearTimeout(longPressTimer.current);
+                    longPressTimer.current = null;
+                  }
+                }}
                 className="group flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--border)] transition-colors cursor-pointer"
               >
                 <MessageSquare size={14} className="text-[var(--text-muted)] flex-shrink-0" />
@@ -162,8 +190,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   {conv.title}
                 </span>
                 <button
-                  onClick={(e) => handleDelete(conv.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 transition-all cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleDeleteConversation(conv.id);
+                  }}
+                  className="md:opacity-0 md:group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 transition-all cursor-pointer"
                 >
                   <Trash2 size={12} />
                 </button>

@@ -157,17 +157,8 @@ export default function SettingsPage() {
               )}
             </div>
           </section>
-
-          <section className="rounded-3xl bg-[var(--bg-surface)]/50 border border-[var(--border)] p-4 md:p-6">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">О приложении</h3>
-            <div className="space-y-2 text-sm text-[var(--text-secondary)]">
-              <p>Pixel AI v1.0.0</p>
-              <p>Модели: Logos 1.0 / Ethos 1.0 / Aether 1.0</p>
-              <p>UI: Material You (Material 3)</p>
             </div>
-          </section>
         </div>
       </div>
-    </div>
   );
 }

@@ -64,12 +64,33 @@ export const POST = (request: Request) =>
 
     const db = getDb();
 
-    const { data: profile } = await db.from("profiles").select("*").eq("id", session.userId).single();
+    const { data: userRow } = await db.from("users").select("id").eq("id", session.userId).single();
+    if (!userRow) {
+      return NextResponse.json({ error: "User not found. Please log in again." }, { status: 401 });
+    }
 
-    const userName = profile?.full_name || "";
-    const userPreferences = profile?.preferences || "";
+    const { data: profile, error: profileError } = await db.from("profiles").select("*").eq("id", session.userId).single();
 
-    const rawTier = (profile?.subscription_tier || "free") as string;
+    if (profileError || !profile) {
+      const { error: createErr } = await db.from("profiles").insert({
+        id: session.userId,
+        email: session.email,
+        full_name: "",
+        subscription_tier: "free",
+      });
+      if (createErr) {
+        console.error("[Chat] Failed to create profile:", createErr.message);
+        return NextResponse.json({ error: "Profile setup failed" }, { status: 500 });
+      }
+    }
+
+    const { data: freshProfile } = await db.from("profiles").select("*").eq("id", session.userId).single();
+    const activeProfile = profile || freshProfile;
+
+    const userName = activeProfile?.full_name || "";
+    const userPreferences = activeProfile?.preferences || "";
+
+    const rawTier = (activeProfile?.subscription_tier || "free") as string;
     const tier = TIER_ORDER.includes(rawTier as typeof TIER_ORDER[number]) ? rawTier : "free";
     const plan = PLANS[tier as keyof typeof PLANS] || PLANS.free;
 
@@ -77,8 +98,8 @@ export const POST = (request: Request) =>
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    let hourlyUsed = profile?.messages_used_hourly || 0;
-    let hourlyReset = profile?.hourly_reset_at ? new Date(profile.hourly_reset_at) : null;
+    let hourlyUsed = activeProfile?.messages_used_hourly || 0;
+    let hourlyReset = activeProfile?.hourly_reset_at ? new Date(activeProfile.hourly_reset_at) : null;
     if (!hourlyReset || hourlyReset < oneHourAgo) {
       hourlyUsed = 0;
       hourlyReset = now;
@@ -96,8 +117,8 @@ export const POST = (request: Request) =>
       );
     }
 
-    let weeklyUsed = profile?.messages_used_weekly || 0;
-    let weeklyReset = profile?.weekly_reset_at ? new Date(profile.weekly_reset_at) : null;
+    let weeklyUsed = activeProfile?.messages_used_weekly || 0;
+    let weeklyReset = activeProfile?.weekly_reset_at ? new Date(activeProfile.weekly_reset_at) : null;
     if (!weeklyReset || weeklyReset < oneWeekAgo) {
       weeklyUsed = 0;
       weeklyReset = now;
@@ -145,12 +166,16 @@ export const POST = (request: Request) =>
       .single();
 
     if (!conversation) {
-      await db.from("conversations").insert({
+      const { error: insertError } = await db.from("conversations").insert({
         id: conversationId,
         user_id: session.userId,
         title: cleanMessages[0]?.content?.slice(0, 50) || "Новый чат",
         model: "llama3-70b-8192",
       });
+      if (insertError) {
+        console.error("[Chat] Failed to create conversation:", insertError.message);
+        return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 });
+      }
       conversation = { id: conversationId, user_id: session.userId };
     }
 
@@ -257,9 +282,6 @@ export const POST = (request: Request) =>
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
               }
               if (done) {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                controller.close();
-
                 if (fullContent) {
                   await db.from("messages").insert({
                     id: randomUUID(),
@@ -268,6 +290,8 @@ export const POST = (request: Request) =>
                     content: fullContent.slice(0, 50000),
                   });
                 }
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                controller.close();
                 return;
               }
             } catch (e) {}

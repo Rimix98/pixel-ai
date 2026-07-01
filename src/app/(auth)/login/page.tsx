@@ -39,6 +39,8 @@ export default function LoginPage() {
     if (!res.ok) {
       setError(data.error || "Ошибка входа");
       setLoading(false);
+    } else if (data.needsVerification) {
+      router.push(`/verify?userId=${data.userId}&email=${encodeURIComponent(data.email)}&from=login`);
     } else if (data.needsOnboarding) {
       router.push("/onboarding");
     } else {

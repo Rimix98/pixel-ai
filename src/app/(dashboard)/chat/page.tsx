@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, createElement } from "react";
-import { Send, Plus, ChevronDown, Lock, Mic, PenLine, GraduationCap, Coffee, Code, X } from "lucide-react";
+import { Send, Plus, ChevronDown, Lock, Mic, PenLine, GraduationCap, Coffee, Code, X, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,7 @@ export default function ChatPage() {
   const [modelName, setModelName] = useState("Logos 1.0");
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isSmiling, setIsSmiling] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,20 +70,8 @@ export default function ChatPage() {
     const conversationId = crypto.randomUUID();
     const messageContent = input.trim() || "Проанализируй это изображение";
     setIsLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: conversationId,
-          title: messageContent.slice(0, 50),
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to create conversation");
-      }
-
       const chatResponse = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,9 +93,12 @@ export default function ChatPage() {
       }
 
       await chatResponse.text();
+      window.dispatchEvent(new Event("conversations-updated"));
       router.push(`/chat/${conversationId}`);
       return;
-    } catch {}
+    } catch (err: any) {
+      setError(err?.message || "Произошла ошибка. Попробуйте снова.");
+    }
     setIsLoading(false);
   };
 
@@ -122,6 +114,14 @@ export default function ChatPage() {
           <Link href="/pricing" className="underline underline-offset-2 text-[var(--accent)] hover:opacity-80">
             Обновиться
           </Link>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-red-500/10 border-b border-red-500/20 text-red-500 text-sm">
+          <AlertTriangle size={16} />
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto opacity-50 hover:opacity-100 cursor-pointer"><X size={12} /></button>
         </div>
       )}
 
@@ -182,7 +182,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input - fixed at bottom on mobile */}
-      <div className="sticky bottom-0 md:static px-4 pb-4 pt-2 bg-[var(--bg-main)] md:bg-transparent z-10">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-2 bg-[var(--bg-main)] z-10 md:static md:bg-transparent">
         <div className="w-full max-w-2xl mx-auto">
           <form onSubmit={handleSubmit}>
             <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] p-3 md:p-4">

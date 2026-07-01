@@ -39,6 +39,10 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
+    if (!user.tg_verified) {
+      return NextResponse.json({ needsVerification: true, userId: user.id, email: user.email });
+    }
+
     await createSession(user.id, user.email);
 
     const { data: profile } = await db.from("profiles").select("full_name").eq("id", user.id).single();

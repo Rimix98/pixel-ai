@@ -7,7 +7,7 @@ if (!secretValue) {
 }
 const SECRET = new TextEncoder().encode(secretValue);
 
-const PUBLIC_PATHS = ["/login", "/register", "/", "/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/me", "/api/auth/callback", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/register", "/", "/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/me", "/api/auth/callback", "/api/auth/verify-code", "/api/auth/tg-lookup", "/api/health"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -11,6 +11,12 @@ export const GET = () =>
     }
 
     const db = getDb();
+
+    const { data: userRow } = await db.from("users").select("id").eq("id", session.userId).single();
+    if (!userRow) {
+      return NextResponse.json({ user: null });
+    }
+
     const { data: profile } = await db.from("profiles").select("*").eq("id", session.userId).single();
 
     return NextResponse.json({
