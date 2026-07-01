@@ -6,6 +6,8 @@ import { withErrorHandling } from "@/lib/api-helpers";
 import { webSearch, formatSearchResults } from "@/lib/search";
 import { PLANS, ALLOWED_MODELS, TIER_ORDER, getApiConfig, PROVIDER, modelSupportsVision, getModelForMessage } from "@/lib/constants";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { preprocessPrompt, validateResponse } from "@/lib/preprocess";
+import { searchKnowledge } from "@/lib/rag";
 
 const MAX_MESSAGES = 50;
 const MAX_CONTENT_LENGTH = 4000;
@@ -182,6 +184,12 @@ export const POST = (request: Request) =>
     const userMessage = cleanMessages[cleanMessages.length - 1];
     const safeContent = userMessage.content.slice(0, MAX_CONTENT_LENGTH);
 
+    // --- Preprocessing: injection detection ---
+    const preprocessed = preprocessPrompt(safeContent);
+    if (preprocessed.blocked) {
+      return NextResponse.json({ error: "Ваш запрос заблокирован системой безопасности." }, { status: 400 });
+    }
+
     await db.from("messages").insert({
       id: randomUUID(),
       conversation_id: conversationId,
@@ -201,13 +209,24 @@ export const POST = (request: Request) =>
 
     let searchContext = "";
 
+    // --- RAG: search local knowledge base ---
+    try {
+      const ragResults = await searchKnowledge(session.userId, safeContent, 5);
+      if (ragResults.context) {
+        searchContext += `\n\nThe following is context from your local knowledge base. Use it to provide accurate, detailed answers:\n\n${ragResults.context}`;
+      }
+    } catch {
+      // RAG search failed, continue without
+    }
+
+    // --- Web search for current events ---
     if (process.env.TAVILY_API_KEY) {
       try {
         const lastMsg = cleanMessages[cleanMessages.length - 1]?.content || "";
         const searchTriggers = /погод[аеуы]|новост[ией]|сегодня|сейчас|актуальн|что происходит|курс|цена|результат|score|спорт|войн|выбор|последн|latest|today|weather|news|now|current/i;
         if (searchTriggers.test(lastMsg)) {
           const searchResponse = await webSearch(lastMsg.slice(0, 200));
-          searchContext = formatSearchResults(searchResponse);
+          searchContext += `\n\nThe following is context from a web search. Use it to answer the user's question accurately:\n\n${formatSearchResults(searchResponse)}`;
         }
       } catch {
         // Search failed, continue without
@@ -283,11 +302,12 @@ export const POST = (request: Request) =>
               }
               if (done) {
                 if (fullContent) {
+                  const validated = validateResponse(fullContent);
                   await db.from("messages").insert({
                     id: randomUUID(),
                     conversation_id: conversationId,
                     role: "assistant",
-                    content: fullContent.slice(0, 50000),
+                    content: validated.cleaned.slice(0, 50000),
                   });
                 }
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -299,11 +319,12 @@ export const POST = (request: Request) =>
         }
 
         if (fullContent) {
+          const validated = validateResponse(fullContent);
           await db.from("messages").insert({
             id: randomUUID(),
             conversation_id: conversationId,
             role: "assistant",
-            content: fullContent.slice(0, 50000),
+            content: validated.cleaned.slice(0, 50000),
           });
         }
 
