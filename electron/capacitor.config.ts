@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Pixel AI",
   webDir: "out",
   server: {
-    url: "https://pixel-ai.vercel.app",
+    url: "https://rimix-pixel-ai.vercel.app",
     cleartext: true,
     androidScheme: "https",
   },

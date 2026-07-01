@@ -48,7 +48,7 @@ EXE появится в `electron/dist/`.
 Файл `capacitor.config.ts` — URL приложения:
 ```ts
 server: {
-  url: "https://pixel-ai.vercel.app",  // замени на свой URL
+  url: "https://rimix-pixel-ai.vercel.app",  // замени на свой URL
 }
 ```
 

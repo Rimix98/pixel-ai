@@ -1,0 +1,23 @@
+{
+  "appId": "com.pixelai.app",
+  "productName": "Pixel AI",
+  "directories": {
+    "buildResources": "resources",
+    "output": "dist-portable"
+  },
+  "files": [
+    "assets/**/*",
+    "build/**/*",
+    "capacitor.config.*",
+    "app/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/appIcon.ico"
+  }
+}
