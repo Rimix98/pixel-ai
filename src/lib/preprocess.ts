@@ -35,6 +35,26 @@ export function detectInjection(text: string): InjectionCheck {
   for (const pat of INJECTION_PATTERNS) {
     if (pat.test(text)) matched.push(pat.source);
   }
+
+  // Bilingual injection detection: mixing scripts to evade single-language patterns
+  const hasLatin = /[a-zA-Z]{3,}/.test(text);
+  const hasCyrillic = /[\u0400-\u04ff]{3,}/.test(text);
+  const hasCJK = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]{3,}/.test(text);
+  const hasArabic = /[\u0600-\u06ff]{3,}/.test(text);
+
+  const scriptCount = [hasLatin, hasCyrillic, hasCJK, hasArabic].filter(Boolean).length;
+
+  if (scriptCount >= 2) {
+    // Check for suspicious bilingual patterns — command words in one script + context in another
+    const suspiciousBilingual =
+      (/(ignore|forget|override|bypass|jailbreak|developer|system|admin)/i.test(text) && hasCyrillic) ||
+      (/(игнорируй|забудь|отключи|обходи|режим|администратор|притворись)/i.test(text) && hasLatin && !/^[a-zA-Z\s\d.,!?;:'"()\[\]{}<>]+$/.test(text));
+
+    if (suspiciousBilingual) {
+      matched.push("bilingual_injection_suspected");
+    }
+  }
+
   return { safe: matched.length === 0, patterns: matched, count: matched.length };
 }
 
