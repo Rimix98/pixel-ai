@@ -303,7 +303,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
           <div className="flex flex-col items-center justify-center h-full text-center -mt-12 md:-mt-24">
             <div className="flex items-center justify-center gap-3 mb-6">
               <img
-                src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
+src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
                 alt="Pixel AI"
                 className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
                 onClick={handleMascotClick}

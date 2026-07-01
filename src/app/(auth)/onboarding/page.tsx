@@ -82,7 +82,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             {mounted && (
-              <img src="/mascot.png" alt="Pixel AI" className="w-10 h-10 rounded-full object-cover" />
+              <img src="/smileyMascot.png" alt="Pixel AI" className="w-10 h-10 rounded-full object-cover" />
             )}
             <h1 className="text-3xl font-bold text-[var(--text-primary)]">Pixel AI</h1>
           </div>

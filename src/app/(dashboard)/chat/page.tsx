@@ -147,7 +147,7 @@ export default function ChatPage() {
               aria-label="Улыбнуть маскота"
             >
               <img
-                src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
+src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
                 alt="Pixel AI"
                 className="w-full h-full object-cover"
                 suppressHydrationWarning
