@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export async function GET() {
   if (!BOT_TOKEN) {
