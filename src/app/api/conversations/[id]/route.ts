@@ -24,7 +24,7 @@ export const GET = (
       .eq("user_id", session.userId)
       .single();
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      return NextResponse.json([]);
     }
 
     const { data: messages } = await db

@@ -67,47 +67,14 @@ export default function ChatPage() {
     if ((!input.trim() && !imagePreview) || isLoading) return;
 
     const conversationId = crypto.randomUUID();
-    const messageContent = input.trim() || "Проанализируй это изображение";
     setIsLoading(true);
-    try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: conversationId,
-          title: messageContent.slice(0, 50),
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to create conversation");
-      }
-
-      const chatResponse = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversationId,
-          messages: [
-            {
-              role: "user",
-              content: messageContent,
-              ...(imagePreview ? { image: imagePreview } : {}),
-            },
-          ],
-        }),
-      });
-
-      if (!chatResponse.ok) {
-        const errData = await chatResponse.json().catch(() => ({}));
-        throw new Error(errData.error || errData.details || "Failed to get response");
-      }
-
-      await chatResponse.text();
-      router.push(`/chat/${conversationId}`);
-      return;
-    } catch {}
-    setIsLoading(false);
+    sessionStorage.setItem("pendingMessage", input.trim());
+    if (imagePreview) {
+      sessionStorage.setItem("pendingImage", imagePreview);
+    } else {
+      sessionStorage.removeItem("pendingImage");
+    }
+    router.push(`/chat/${conversationId}`);
   };
 
   const tier = user?.subscription_tier || "free";
@@ -136,7 +103,7 @@ export default function ChatPage() {
       />
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pb-24 md:pb-0">
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pb-10 md:pb-0">
         {/* Greeting */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
@@ -182,7 +149,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input - fixed at bottom on mobile */}
-      <div className="sticky bottom-0 md:static px-4 pb-4 pt-2 bg-[var(--bg-main)] md:bg-transparent z-10">
+      <div className="mt-44 md:-mt-14 px-4 pb-8 md:pb-4 pt-2 bg-[var(--bg-main)] md:bg-transparent relative z-10">
         <div className="w-full max-w-2xl mx-auto">
           <form onSubmit={handleSubmit}>
             <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] p-3 md:p-4">

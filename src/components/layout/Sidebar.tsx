@@ -52,6 +52,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }, []);
 
   useEffect(() => {
+    const handleUpdate = () => {
+      fetch("/api/conversations")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setConversations(data))
+        .catch(() => {});
+    };
+
+    window.addEventListener("conversations-updated", handleUpdate);
+    return () => window.removeEventListener("conversations-updated", handleUpdate);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const interval = setInterval(async () => {
       const res = await fetch("/api/conversations");

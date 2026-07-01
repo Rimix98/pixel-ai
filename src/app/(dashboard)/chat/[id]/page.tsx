@@ -78,25 +78,29 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
         }
       }
       return true;
-    } else if (res.status === 401) {
-      router.push("/login");
-    } else if (res.status === 404) {
-      conversationNotFound.current = true;
-      router.push("/chat");
     }
+
+    if (res.status === 401) {
+      router.push("/login");
+      return false;
+    }
+
     return false;
   };
 
   const checkPendingMessage = () => {
     const pending = sessionStorage.getItem("pendingMessage");
     const pendingImg = sessionStorage.getItem("pendingImage");
-    if (pending) {
+    if (pending !== null) {
       sessionStorage.removeItem("pendingMessage");
       pendingAutoSubmit.current = true;
-      setInput(pending);
+      if (pending) {
+        setInput(pending);
+      }
     }
     if (pendingImg) {
       sessionStorage.removeItem("pendingImage");
+      pendingAutoSubmit.current = true;
       setImagePreview(pendingImg);
     }
   };
@@ -189,6 +193,8 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
         throw new Error(errData.error || errData.details || "Failed to get response");
       }
 
+      window.dispatchEvent(new Event("conversations-updated"));
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
@@ -264,8 +270,6 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
     navigator.clipboard.writeText(content);
   };
 
-  const hasAssistantReply = messages.some((m) => m.role === "assistant");
-
   const tier = (user?.subscription_tier || "free") as string;
   const tierLabel = tier === "max" ? "Max" : tier === "pro" ? "Pro" : "Free";
 
@@ -308,7 +312,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
       )}
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
-        {!hasAssistantReply && (
+        {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center -mt-12 md:-mt-24">
             <div className="flex items-center justify-center gap-3 mb-6">
               <img
@@ -347,7 +351,7 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
           </div>
         )}
 
-        {hasAssistantReply && messages.map((message) => (
+        {messages.map((message) => (
           <div
             key={message.id}
             className={`flex gap-3 ${
