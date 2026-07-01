@@ -302,15 +302,13 @@ export default function ChatConversationPage({ params }: { params: Promise<{ id:
         {!hasAssistantReply && (
           <div className="flex flex-col items-center justify-center h-full text-center -mt-12 md:-mt-24">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-white/80 border border-[var(--border)] flex items-center justify-center overflow-hidden shadow-sm cursor-pointer hover:scale-105 transition-transform">
-                <img
-                  src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
-                  alt="Pixel AI"
-                  className="w-full h-full object-cover"
-                  onClick={handleMascotClick}
-                  suppressHydrationWarning
-                />
-              </div>
+              <img
+                src={isSmiling ? "/smileyMascot.png" : "/mascot.png"}
+                alt="Pixel AI"
+                className="w-10 h-10 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                onClick={handleMascotClick}
+                suppressHydrationWarning
+              />
               <h1 className="text-2xl md:text-4xl font-light text-[var(--text-primary)]">{mounted ? greeting : "\u00A0"}</h1>
             </div>
 

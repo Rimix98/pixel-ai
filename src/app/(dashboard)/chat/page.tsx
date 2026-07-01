@@ -143,7 +143,7 @@ export default function ChatPage() {
             <button
               type="button"
               onClick={handleMascotClick}
-              className="w-10 h-10 rounded-xl border border-[var(--border)] bg-white/80 flex items-center justify-center overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-pointer"
+              className="w-10 h-10 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]/80 flex items-center justify-center overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-pointer"
               aria-label="Улыбнуть маскота"
             >
               <img
