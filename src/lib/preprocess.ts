@@ -14,7 +14,6 @@ export function estimateTokens(text: string): number {
     else if (code >= 0x3040 && code <= 0x309f) count += 1.5;  // Hiragana
     else if (code >= 0x30a0 && code <= 0x30ff) count += 1.5;  // Katakana
     else if (code >= 0xac00 && code <= 0xd7af) count += 1.5;  // Korean
-    else if (code >= 0x0400 && code <= 0x04ff) count += 0.7;  // Cyrillic
     else if (code >= 0x0590 && code <= 0x05ff) count += 0.8;  // Hebrew
     else if (code >= 0x10a0 && code <= 0x10ff) count += 0.8;  // Georgian
     else if (code >= 0x0530 && code <= 0x058f) count += 0.8;  // Armenian

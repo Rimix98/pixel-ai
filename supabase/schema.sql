@@ -7,6 +7,7 @@ create table if not exists public.users (
   password_hash text not null,
   full_name text default '',
   tg_verified boolean default false,
+  tos_accepted_at text default null,
   created_at text default (now() at time zone 'utc')::text
 );
 
@@ -22,6 +23,8 @@ create table if not exists public.profiles (
   messages_used_weekly integer default 0,
   hourly_reset_at text,
   weekly_reset_at text,
+  image_gen_used_daily integer default 0,
+  image_gen_daily_reset_at text,
   created_at text default (now() at time zone 'utc')::text,
   updated_at text default (now() at time zone 'utc')::text
 );

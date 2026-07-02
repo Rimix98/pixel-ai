@@ -12,7 +12,7 @@ export const POST = (request: Request) =>
       return NextResponse.json({ error: "Too many attempts. Try again in a minute." }, { status: 429 });
     }
 
-    const { email, password } = await request.json();
+    const { email, password, tosAccepted } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -42,6 +42,7 @@ export const POST = (request: Request) =>
       password_hash: passwordHash,
       full_name: "",
       tg_verified: false,
+      tos_accepted_at: tosAccepted ? new Date().toISOString() : null,
     });
     await db.from("profiles").insert({ id, email, full_name: "", preferences: "" });
 

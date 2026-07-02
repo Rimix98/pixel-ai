@@ -135,10 +135,13 @@ function parseInline(text: string): React.ReactNode[] {
         </span>
       );
     } else if (match[5] && match[6]) {
+      // Only allow safe protocols in links
+      const url = match[6];
+      const isSafe = /^(https?:\/\/|mailto:|#)/i.test(url) || url.startsWith("/");
       parts.push(
         <a
           key={key++}
-          href={match[6]}
+          href={isSafe ? url : "#"}
           target="_blank"
           rel="noopener noreferrer"
           className="text-[var(--accent)] underline decoration-[var(--accent)]/30 hover:decoration-[var(--accent)] transition-colors"

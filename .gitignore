@@ -52,3 +52,18 @@ next-env.d.ts
 
 # AI
 AGENTS.md
+
+# logs
+*.log
+
+# cookies
+cookies.txt
+
+# IDE
+android/.idea/
+
+# electron build artifacts
+electron/dist-*/
+
+# mimocode
+.mimocode/

@@ -1,7 +1,7 @@
 export const PLANS = {
-  free: { hourlyLimit: 15, weeklyLimit: 300 },
-  pro: { hourlyLimit: 30, weeklyLimit: -1 },
-  max: { hourlyLimit: -1, weeklyLimit: -1 },
+  free: { hourlyLimit: 15, weeklyLimit: 300, imageDailyLimit: 10 },
+  pro: { hourlyLimit: 30, weeklyLimit: -1, imageDailyLimit: 20 },
+  max: { hourlyLimit: -1, weeklyLimit: -1, imageDailyLimit: 30 },
 } as const;
 
 export const TIER_ORDER = ["free", "pro", "max"] as const;

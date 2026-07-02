@@ -121,6 +121,17 @@ export default function LoginPage() {
             Регистрация
           </a>
         </p>
+
+        <p className="mt-3 text-center text-xs text-[var(--text-muted)]">
+          Входя в аккаунт, вы соглашаетесь с{" "}
+          <a href="/terms" className="text-[var(--accent)] hover:underline">
+            Условиями использования
+          </a>{" "}
+          и{" "}
+          <a href="/privacy" className="text-[var(--accent)] hover:underline">
+            Политикой конфиденциальности
+          </a>
+        </p>
       </div>
     </div>
   );

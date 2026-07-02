@@ -12,7 +12,7 @@ export const GET = () =>
 
     const db = getDb();
 
-    const { data: userRow } = await db.from("users").select("id").eq("id", session.userId).single();
+    const { data: userRow } = await db.from("users").select("*").eq("id", session.userId).single();
     if (!userRow) {
       return NextResponse.json({ user: null });
     }
@@ -30,6 +30,7 @@ export const GET = () =>
         hourly_reset_at: profile?.hourly_reset_at || null,
         messages_used_weekly: profile?.messages_used_weekly || 0,
         weekly_reset_at: profile?.weekly_reset_at || null,
+        tos_accepted_at: userRow.tos_accepted_at || null,
       },
     });
   });

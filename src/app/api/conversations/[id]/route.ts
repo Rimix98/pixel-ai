@@ -50,7 +50,7 @@ export const PATCH = (
     const updates = await request.json();
     const db = getDb();
 
-    const patchData: Record<string, any> = {};
+    const patchData: Record<string, string | null> = {};
 
     for (const key of ALLOWED_PATCH_FIELDS) {
       if (updates[key] !== undefined) {
@@ -82,6 +82,18 @@ export const DELETE = (
     }
 
     const db = getDb();
+
+    // Verify ownership first
+    const { data: conversation } = await db
+      .from("conversations")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", session.userId)
+      .single();
+    if (!conversation) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
     await db.from("messages").delete().eq("conversation_id", id);
     await db.from("conversations").delete().eq("id", id).eq("user_id", session.userId);
 

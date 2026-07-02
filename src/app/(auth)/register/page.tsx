@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -31,12 +32,17 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError("Необходимо принять условия использования и политику конфиденциальности");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, tosAccepted: true }),
       });
       const data = await res.json();
 
@@ -114,6 +120,25 @@ export default function RegisterPage() {
               className="w-full px-4 py-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent)] transition-colors"
             />
           </div>
+
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--bg-elevated)] accent-[var(--accent)]"
+            />
+            <span className="text-sm text-[var(--text-secondary)]">
+              Я принимаю{" "}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline">
+                Условия использования
+              </a>{" "}
+              и{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline">
+                Политику конфиденциальности
+              </a>
+            </span>
+          </label>
 
           {error && (
             <div className="p-3 rounded-xl bg-[var(--error-bg)] border border-[var(--error-border)] text-[var(--error-text)] text-sm">

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   MessageSquare, Settings, LogOut, CreditCard, Search, Trash2,
-  FolderOpen, Layers, PanelLeft, Plus, X, Sun, Moon,
+  FolderOpen, Layers, PanelLeft, Plus, X, Sun, Moon, Image,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,6 +27,7 @@ const navItems = [
   { icon: MessageSquare, href: "/chat", label: "Чаты" },
   { icon: FolderOpen, href: "/projects", label: "Проекты" },
   { icon: Layers, href: "/artifacts", label: "Артефакты" },
+  { icon: Image, href: "/design", label: "Дизайн" },
   { icon: Settings, href: "/settings", label: "Настройки" },
 ];
 

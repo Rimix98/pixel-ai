@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { TosOverlay } from "@/components/TosOverlay";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function DashboardLayout({
@@ -10,7 +11,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { loading, user } = useAuth();
+  const { loading, user, refreshUser } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const tier = user?.subscription_tier || "free";
@@ -29,6 +30,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-[var(--bg-deepest)]">
+      {user && !user.tos_accepted_at && <TosOverlay onAccepted={refreshUser} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="flex-1 overflow-y-auto">
         <div className="md:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-sidebar)]" style={{ paddingTop: `calc(0.5rem + env(safe-area-inset-top))` }}>

@@ -13,6 +13,7 @@ interface User {
   hourly_reset_at?: string;
   messages_used_weekly?: number;
   weekly_reset_at?: string;
+  tos_accepted_at?: string | null;
 }
 
 export function useAuth() {

@@ -1,3 +1,6 @@
+// Rate limiter using in-memory Map with periodic cleanup.
+// For production: consider Redis or database-backed implementation.
+
 const rateLimit = new Map<string, { count: number; reset: number }>();
 
 export function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
@@ -13,6 +16,10 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): bo
 
   entry.count++;
   return true;
+}
+
+export function getRateLimitStatus(key: string): { count: number; reset: number } | null {
+  return rateLimit.get(key) || null;
 }
 
 // Periodic cleanup to prevent memory leak
